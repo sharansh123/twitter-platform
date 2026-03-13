@@ -1,0 +1,21 @@
+[package]
+name = "user_post"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = "0.8.8"
+getset = "0.1.6"
+serde = { version = "1.0.228", features = ["derive"] }
+tokio = { version = "1.49.0", features = ["full"] }
+sqlx = { version = "0.7", features = ["runtime-tokio", "json", "tls-rustls", "postgres", "macros", "chrono", "bigdecimal"] }
+dotenvy = "0.15"
+chrono = { version = "0.4.43", features = ["serde"] }
+bigdecimal = { version = "0.3.1", features = ["serde"] }
+# Replace your current line with this:
+jsonwebtoken = { version = "10.2.0", features = ["rust_crypto"] }
+axum-extra = { version = "0.12.5", features = ["typed-header"] }
+argon2 = "0.5.3"
+serde_json = "1.0.149"
+delay-queue = "0.2.0"
+tokio-util = { version = "0.7", features = ["time"] }
