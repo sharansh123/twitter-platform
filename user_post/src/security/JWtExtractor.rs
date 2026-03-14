@@ -4,8 +4,8 @@ use axum::http::StatusCode;
 use axum_extra::headers::Authorization;
 use axum_extra::headers::authorization::Bearer;
 use axum_extra::TypedHeader;
+use crate::models::Auth::Claims;
 use crate::utils::SecurityUtil;
-use crate::utils::SecurityUtil::Claims;
 
 impl<S> FromRequestParts<S> for Claims where S: Send + Sync {
     type Rejection = StatusCode;
