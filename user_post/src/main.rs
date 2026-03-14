@@ -4,6 +4,7 @@ use axum::routing::{get, post};
 use tokio::net::TcpListener;
 use crate::database::DB::DB;
 use crate::handlers::UserHandler;
+use crate::models::User::UserFollow;
 
 mod database;
 mod handlers;
@@ -18,6 +19,8 @@ async fn main() {
     let app: Router = Router::new().route("/health", get(async || "Up and Running".to_string()))
         .route("/register", post(UserHandler::register))
         .route("/login", post(UserHandler::login))
+        .route("/user/follow/{followed_id}", post(UserHandler::add_follower).delete(UserHandler::remove_follower))
+        .route("/user/", get(UserHandler::get_profile))
         .with_state(db);
     let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();
     println!("User Post Server Started!");
