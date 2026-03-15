@@ -3,6 +3,7 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::Json;
 use crate::database::DB::DB;
+use crate::database::KafkaConfig::Message;
 use crate::models::Auth::{Claims, Token, UserAuth};
 use crate::models::User::{UserFollow, UserPost, UserProfile};
 
@@ -34,9 +35,14 @@ pub async fn get_profile(claims: Claims, State(db): State<Arc<DB>>) -> Result<Js
 }
 
 pub async fn write_post(claims: Claims, State(db): State<Arc<DB>>, Json(user_post): Json<UserPost>) -> Result<Json<UserPost>, StatusCode> {
-    let result = db.user_post(user_post, claims.sub).await.map(Json);
-    // send it to the message queue
-    result
+    let result = db.user_post(user_post, claims.sub).await.map(Json)?;
+    let topic = std::env::var("KAFKA_TOPIC").expect("Brokers not found");
+    let message = Message{
+        post_id: result.id.clone(),
+        user_id: result.user_id.clone()
+    };
+    db.producer.send(topic, message).await;
+    Ok(result)
 }
 
 pub async fn get_post(claims: Claims, State(db): State<Arc<DB>>, Path(id): Path<i32>) -> Result<Json<UserPost>, StatusCode> {

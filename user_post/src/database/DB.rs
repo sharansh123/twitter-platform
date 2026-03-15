@@ -2,13 +2,16 @@ use argon2::PasswordHash;
 use axum::http::StatusCode;
 use chrono::Duration;
 use sqlx::postgres::PgPoolOptions;
+use crate::database::KafkaConfig;
+use crate::database::KafkaConfig::KafkaProducer;
 use crate::models::Auth::{Token, UserAuth};
 use crate::models::User::{UserFollow, UserPost, UserProfile};
 use crate::utils::SecurityUtil;
 use crate::utils::SecurityUtil::generate_token;
 
 pub struct DB {
-    db: sqlx::PgPool
+    db: sqlx::PgPool,
+    pub producer: KafkaProducer
 }
 
 impl DB {
@@ -21,7 +24,8 @@ impl DB {
             .expect("Failed to connect to DB");
         
         DB {
-            db: pool
+            db: pool,
+            producer: KafkaConfig::new()
         }
     }
 
@@ -101,7 +105,7 @@ impl DB {
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
     }
-    
+
     pub async fn get_post(&self, post_id: i32) -> Result<UserPost, StatusCode> {
         sqlx::query_as!(
             UserPost,
