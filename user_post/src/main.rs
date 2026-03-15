@@ -21,6 +21,8 @@ async fn main() {
         .route("/login", post(UserHandler::login))
         .route("/user/follow/{followed_id}", post(UserHandler::add_follower).delete(UserHandler::remove_follower))
         .route("/user/", get(UserHandler::get_profile))
+        .route("/user/post", post(UserHandler::write_post))
+        .route("/user/post/{id}", get(UserHandler::get_post))
         .with_state(db);
     let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();
     println!("User Post Server Started!");

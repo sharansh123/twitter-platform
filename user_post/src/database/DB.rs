@@ -3,7 +3,7 @@ use axum::http::StatusCode;
 use chrono::Duration;
 use sqlx::postgres::PgPoolOptions;
 use crate::models::Auth::{Token, UserAuth};
-use crate::models::User::{UserFollow, UserProfile};
+use crate::models::User::{UserFollow, UserPost, UserProfile};
 use crate::utils::SecurityUtil;
 use crate::utils::SecurityUtil::generate_token;
 
@@ -88,6 +88,25 @@ impl DB {
             "select id, name, followers, following from users where id = $1",
             user_id
         ).fetch_one(&self.db)
+            .await
+            .map_err(|_| StatusCode::NOT_FOUND)
+    }
+
+    pub async fn user_post(&self, user_post: UserPost, user_id: String) -> Result<UserPost, StatusCode> {
+        sqlx::query_as!(
+            UserPost,
+            "INSERT INTO posts (user_id, content, created_at) VALUES ($1, $2, NOW()) RETURNING id, user_id, content, created_at",
+            user_id, user_post.content
+        ).fetch_one(&self.db)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+    }
+    
+    pub async fn get_post(&self, post_id: i32) -> Result<UserPost, StatusCode> {
+        sqlx::query_as!(
+            UserPost,
+            " select * from posts where id = $1 ", post_id)
+            .fetch_one(&self.db)
             .await
             .map_err(|_| StatusCode::NOT_FOUND)
     }

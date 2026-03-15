@@ -45,6 +45,9 @@ create table public.posts
     created_at timestamp default CURRENT_TIMESTAMP
 );
 
+alter table posts alter column created_at set NOT NULL;
+
+
 alter table public.posts
     owner to postgres;
 

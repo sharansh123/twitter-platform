@@ -18,7 +18,9 @@ pub struct UserProfile{
 #[derive(Deserialize, Serialize)]
 pub struct UserPost {
     #[serde(default)]
-    pub id: String,
+    pub id: i32,
+    #[serde(default)]
+    pub user_id: String,
     pub content: String,
     #[serde(default)]
     pub created_at: NaiveDateTime,
