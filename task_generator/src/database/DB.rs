@@ -1,9 +1,12 @@
 use axum::http::StatusCode;
+use serde::Serialize;
 use sqlx::postgres::PgPoolOptions;
 use crate::database::KafkaConfig::PostEvent;
+use crate::database::MQConfig::MessageQueue;
 
 pub struct DB{
-    db: sqlx::PgPool
+    db: sqlx::PgPool,
+    queue: MessageQueue
 }
 
 #[derive(Debug)]
@@ -12,7 +15,7 @@ pub struct Follower {
     offset_val:  i32
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct PostTask {
     follower_id: String,
     post_id:  i32
@@ -30,7 +33,8 @@ impl DB {
             .expect("Failed to connect to DB");
 
         DB {
-            db: pool
+            db: pool,
+            queue: MessageQueue::new().await
         }
     }
 
@@ -52,7 +56,16 @@ impl DB {
                         follower_id: x.follower_id.clone(),
                         post_id
                     }).collect();
-                    if !task.is_empty() { println!("Sending for Redis update") }
+                    if !task.is_empty() {
+                        println!("Sending to Message Queue");
+                        let queue = std::env::var("RABBIT_MS_ADDR").expect("RABBIT_MS_ADDR not found");
+                        let payload = serde_json::to_vec(&task).expect("Unable to serialize");
+                        let result = self.queue.push(&queue, &payload).await;
+                        match result {
+                            Ok(_) => println!("Sent payload successfully"),
+                            Err(_) => eprintln!("Unable to send payload")
+                        }
+                    }
                 },
                 Err(_) => break
             }
