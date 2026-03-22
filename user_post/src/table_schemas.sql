@@ -11,8 +11,10 @@ create table public.user_follow
 create sequence user_follow_offset_seq;
 
 alter table public.user_follow add column offset_val integer default nextval('user_follow_offset_seq');
+drop index user_follow_offset_idx;
+create index user_follow_offset_idx on public.user_follow (followed_id, offset_val);
 
-create index user_follow_offset_idx on public.user_follow (follower_id, offset_val);
+alter table public.user_follow alter column offset_val set not null;
 
 create table public.users
 (
